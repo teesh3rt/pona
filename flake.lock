@@ -1,0 +1,61 @@
+{
+  "nodes": {
+    "gleam": {
+      "inputs": {
+        "nixpkgs": "nixpkgs"
+      },
+      "locked": {
+        "lastModified": 1711040940,
+        "narHash": "sha256-Y77WPmyPOQga9kb4ClaLfRzfaBBJCYghS9+VNI0EDvg=",
+        "owner": "gleamnix",
+        "repo": "gleamnix",
+        "rev": "063fad85f8a0d790e7f93852e2ac23d813454f3a",
+        "type": "github"
+      },
+      "original": {
+        "owner": "gleamnix",
+        "repo": "gleamnix",
+        "type": "github"
+      }
+    },
+    "nixpkgs": {
+      "locked": {
+        "lastModified": 1710852866,
+        "narHash": "sha256-thZspkLsuEevbFyISitnTairZpX9OSJApLyjIIJCAqw=",
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "rev": "bd7d37bc573164340d6fd2520e9ba1300dac1e1e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs_2": {
+      "locked": {
+        "lastModified": 1710806803,
+        "narHash": "sha256-qrxvLS888pNJFwJdK+hf1wpRCSQcqA6W5+Ox202NDa0=",
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "rev": "b06025f1533a1e07b6db3e75151caa155d1c7eb3",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nixos",
+        "ref": "nixos-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "root": {
+      "inputs": {
+        "gleam": "gleam",
+        "nixpkgs": "nixpkgs_2"
+      }
+    }
+  },
+  "root": "root",
+  "version": 7
+}
