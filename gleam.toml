@@ -2,7 +2,7 @@ name = "pona"
 description = "A library for toki pona"
 licences = ["Apache-2.0"]
 
-version = "1.0.0"
+version = "1.0.1"
 
 # Fill out these fields if you intend to generate HTML documentation or publish
 # your project to the Hex package manager.
