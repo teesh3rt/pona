@@ -2,22 +2,33 @@ import gleam/httpc
 import gleam/result
 import gleam/http/request
 import gleam/json
-import gleam/dynamic.{field, dict, string}
+import gleam/string
+import gleam/dynamic.{field, dict, list, string}
 import gleam/dict.{type Dict}
+import pona/translation.{type WordTranslation, WordTranslation}
 
-pub const sona_linku: String = "https://raw.githubusercontent.com/lipu-linku/jasima/main/data.json"
+pub const sona_linku: String = "https://api.linku.la/v1/words/"
 
 pub type WordFetcher {
     WordFetcher(
 	word: String,
-	lang: String
+	lang: List(String)
     )
 }
 
-type WordIntermediate {
-    WordIntermediate(
-	def: Dict(String, String),
-	word: String
+
+pub type Word {
+    Word(
+	id: String,
+	book: String,
+	coined_era: String,
+	coined_year: String,
+
+	source_language: String,
+	usage_category: String,
+	translations: Dict(String, WordTranslation),
+
+	creator: List(String)
     )
 }
 
@@ -25,36 +36,26 @@ pub type WordError {
     JSONDecodeError(json.DecodeError)
     DynamicError(dynamic.Dynamic)
     WordNotFound(String)
-    DataParsingError(String)
-}
-
-type WordDataset {
-    Data(
-	data: Dict(String, WordIntermediate)
-    )
-}
-
-pub type Word {
-    Word(
-	word: String,
-	def: String
-    )
+    WordParsingError(String)
+    TranslationNotFound(String)
 }
 
 pub fn word(word: String) -> WordFetcher {
     WordFetcher(
 	word,
-	"en"
+	["en"]
     )
 }
 
 pub fn language(wf: WordFetcher, new: String) -> WordFetcher {
-    WordFetcher(wf.word, new)
+    WordFetcher(wf.word, [new, ..wf.lang])
 }
 
 pub fn fetch(wf: WordFetcher) -> Result(Word, WordError) {
+    let comma_seperate = string.join(_, ",")
+
     let assert Ok(req) = 
-	request.to(sona_linku)
+	request.to(sona_linku <> wf.word <> "?lang=" <> comma_seperate(wf.lang))
 
     let resp =
 	result.replace_error(httpc.send(req), DynamicError)
@@ -64,46 +65,37 @@ pub fn fetch(wf: WordFetcher) -> Result(Word, WordError) {
 	Error(_) -> ""
     }
 
-    let word_decoder = dynamic.decode2(
-	WordIntermediate,
+    let word_translation_decoder = dynamic.decode2(
+	WordTranslation,
+	field("commentary", string),
+	field("definition", string)
+    )
+
+    let word_decoder = dynamic.decode8(
+	Word,
 	// dict(string, string),
-	// string("def")
-	field("def", dict(string, string)),
-	field("word", string),
+	// string("def"),
+	field("id", string),
+	field("book", string),
+	field("coined_era", string),
+	field("coined_year", string),
+	
+	field("source_language", string),
+	field("usage_category", string),
+	field("translations", dict(string, word_translation_decoder)),
+
+	field("creator", list(string))
     )
 
-    let data_decoder = dynamic.decode1(
-	Data,
-	field("data", dict(string, word_decoder))
-    )
+    let word = 
+	json.decode(from: body, using: word_decoder)
+	|> result.replace_error(WordParsingError("There was an error parsing the word!"))
 
-    let data_decoded = 
-	json.decode(from: body, using: data_decoder)
-	|> result.replace_error(DataParsingError("There was an error parsing the data!"))
-
-    let data = case data_decoded {
-	Ok(data) -> data
-	Error(_) -> Data(data: dict.new())
-    }
-
-    let interword =
-	data.data
-	|> dict.get(wf.word)
-	|> result.replace_error(WordNotFound("The word you were looking for was not found!"))
-   
-    case interword {
-	Ok(iw) -> {
-	    Ok(Word(
-		word: iw.word,
-		def:
-		    dict.get(iw.def, wf.lang)
-		    |> result.unwrap("could not get definition")
-	    ))
-	}
-	Error(_) -> Error(WordNotFound("The word you were looking for was not found!"))
-    }
+    word
 }
 
-pub fn get_definition(word: Word) -> String {
-    word.def
+pub fn get_translation(word: Word, lang: String) -> Result(WordTranslation, WordError) {
+    word.translations
+    |> dict.get(lang)
+    |> result.replace_error(TranslationNotFound("The translation for the language " <> lang <> " was not found for word " <> word.id))
 }
