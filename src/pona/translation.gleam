@@ -1,14 +1,11 @@
 pub type WordTranslation {
-    WordTranslation(
-	commentary: String,
-	definition: String
-    )
+  WordTranslation(commentary: String, definition: String)
 }
 
 pub fn get_commentary(translation: WordTranslation) -> String {
-    translation.commentary
+  translation.commentary
 }
 
 pub fn get_definition(translation: WordTranslation) -> String {
-    translation.definition
+  translation.definition
 }
